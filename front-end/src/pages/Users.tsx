@@ -1,10 +1,16 @@
-
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Edit, Trash2, Mail, Phone, User } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DialogTrigger } from '@radix-ui/react-dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import TagsInput from '@yaireo/tagify/dist/react.tagify';
+import '@yaireo/tagify/dist/tagify.css';
 
 interface UserType {
   id: string;
@@ -71,6 +77,29 @@ const Users = () => {
     );
   };
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [invitedEmails, setInvitedEmails] = useState<string[]>([]);
+  const tagifyRef = useRef<any>(null);
+
+  // Tagify change handler
+  const handleTagifyChange = (e: any) => {
+    const tags = e.detail.value ? JSON.parse(e.detail.value) : [];
+    setInvitedEmails(tags.map((tag: any) => tag.value));
+  };
+
+  const handleInviteSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you could send invitedEmails to backend
+    setInvitedEmails([]);
+    if (tagifyRef.current) {
+      tagifyRef.current.removeAllTags();
+    }
+    setIsDialogOpen(false);
+  };
+
+  const [editingClient, setEditingClient] = useState<UserType | null>(null);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -79,10 +108,59 @@ const Users = () => {
           <h1 className="text-3xl font-bold text-gray-900">Users</h1>
           <p className="text-gray-600 mt-2">Manage your team members and their permissions</p>
         </div>
-        <Button className="bg-red-600 hover:bg-red-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Add User
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-primary-500 hover:bg-primary-600">
+              <Plus className="w-4 h-4 mr-2" />
+              Invite Users
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Invite Users</DialogTitle>
+              <DialogDescription>
+                Enter one or more email addresses to invite users. Press Enter or comma to add each email.
+              </DialogDescription>
+            </DialogHeader>
+            <form className="space-y-4" onSubmit={handleInviteSubmit}>
+              <div className="space-y-2">
+                <Label htmlFor="emails">Emails</Label>
+                <TagsInput
+                  ref={tagifyRef}
+                  settings={{
+                    whitelist: [],
+                    delimiters: ", ",
+                    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    placeholder: "Type or paste emails and press Enter",
+                    dropdown: { enabled: 0 },
+                    maxTags: 20,
+                    enforceWhitelist: false,
+                  }}
+                  value={invitedEmails.map(email => ({ value: email }))}
+                  onChange={handleTagifyChange}
+                  name="emails"
+                  id="emails"
+                  Input={React.forwardRef((props, ref) => (
+                    <Textarea
+                      ref={ref}
+                      {...props}
+                      className="min-h-[60px] resize-y"
+                      rows={3}
+                    />
+                  ))}
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-primary-500 hover:bg-primary-600">
+                  Invite
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Stats Cards */}
