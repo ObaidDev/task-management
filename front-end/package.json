@@ -42,6 +42,7 @@
     "@reduxjs/toolkit": "^2.8.2",
     "@tanstack/react-query": "^5.56.2",
     "@types/react-redux": "^7.1.34",
+    "@yaireo/tagify": "3.2.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
