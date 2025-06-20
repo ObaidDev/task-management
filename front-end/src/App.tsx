@@ -30,9 +30,11 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/clients" element={<Clients />} />
-        <Route path="/invoices" element={<div>Invoices - Coming Soon</div>} />
-        <Route path="/payment-links" element={<div>Payment Links - Coming Soon</div>} />
+        {/* <Route path="/clients" element={<Clients />} /> */}
+        {/* <Route path="/invoices" element={<div>Invoices - Coming Soon</div>} />
+        <Route path="/payment-links" element={<div>Payment Links - Coming Soon</div>} /> */}
+        <Route path="/users" element={<Users />} />
+        <Route path="/tasks" element={<Tasks />} />
         <Route path="/settings" element={<div>Settings - Coming Soon</div>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
