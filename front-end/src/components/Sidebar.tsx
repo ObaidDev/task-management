@@ -21,9 +21,9 @@ const Sidebar = () => {
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/clients', label: 'Clients', icon: Users },
-    { href: '/invoices', label: 'Invoices', icon: FileText },
-    { href: '/payment-links', label: 'Payment Links', icon: LinkIcon },
+    // { href: '/clients', label: 'Clients', icon: Users },
+    // { href: '/invoices', label: 'Invoices', icon: FileText },
+    // { href: '/payment-links', label: 'Payment Links', icon: LinkIcon },
     { href: '/users', label: 'Users', icon: Users },
     { href: '/tasks', label: 'Tasks', icon: CheckSquare },
     { href: '/settings', label: 'Settings', icon: Settings },
