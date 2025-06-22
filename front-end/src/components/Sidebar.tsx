@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { logout } from '@/store/slices/authSlice';
+// import { logout } from '@/store/slices/authSlice';
 import { 
   LayoutDashboard, 
   Users, 
@@ -14,10 +14,12 @@ import {
   CheckSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 const Sidebar = () => {
   const location = useLocation();
   const dispatch = useDispatch();
+  const { logout } = useAuth() ;
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -30,14 +32,20 @@ const Sidebar = () => {
   ];
 
   const handleLogout = () => {
-    dispatch(logout());
+    // const 
+    // dispatch(logout());
+    logout() ;
   };
 
   return (
     <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col">
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center space-x-2">
-          <CreditCard className="w-8 h-8 text-primary-500" />
+              <img 
+                src="/logo.svg" 
+                alt="BillFlow Logo" 
+                className="w-16 h-16"
+              />
           <span className="text-xl font-bold text-gray-900">BillFlow</span>
         </div>
       </div>
@@ -73,7 +81,7 @@ const Sidebar = () => {
           onClick={handleLogout}
           className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 w-full transition-colors"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="w-5 h-5"/>
           <span>Logout</span>
         </button>
       </div>

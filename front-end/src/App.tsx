@@ -15,14 +15,29 @@ import Clients from '@/pages/Clients';
 import Users from '@/pages/Users';
 import Tasks from '@/pages/Tasks';
 import NotFound from '@/pages/NotFound';
+import { useKeycloak } from '@react-keycloak/web';
+import { Loader2 } from 'lucide-react';
+import AuthProvider from './components/auth/AuthProvider';
+import AppLoginPage from './components/auth/AppLoginPage';
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { keycloak, initialized } = useKeycloak();
 
-  if (!isAuthenticated) {
-    return <Auth />;
+  // Show loading while Keycloak is initializing
+  if (!initialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+
+  // If not authenticated, show login button or redirect to Keycloak
+  if (!keycloak.authenticated) {
+    return <AppLoginPage />;
   }
 
   return (
@@ -46,9 +61,11 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
-        <Provider store={store}>
-          <AppContent />
-        </Provider>
+        <AuthProvider>
+          <Provider store={store}>
+            <AppContent />
+          </Provider>
+        </AuthProvider>
       </BrowserRouter>
       <Toaster />
       <Sonner />

@@ -4,13 +4,16 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  // const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+  const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
     return <div className="min-h-screen bg-gray-50">{children}</div>;
