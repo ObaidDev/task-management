@@ -2,8 +2,6 @@ package io.hahn_software.emrs.security;
 
 
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
@@ -11,7 +9,6 @@ import java.security.spec.X509EncodedKeySpec;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -29,8 +26,6 @@ import org.springframework.beans.factory.annotation.Value;
 import java.security.KeyFactory;
 import java.util.Base64;
 
-import org.springframework.core.io.ClassPathResource;
-
 
 
 @Configuration
@@ -38,6 +33,8 @@ import org.springframework.core.io.ClassPathResource;
 @EnableMethodSecurity
 public class SecurityConf {
     
+    @Value("${jwt.public.key}")
+    private String publicKeyPEM;
 
     private final CorsConfigurationSource corsConfigurationSource ;
 
@@ -106,19 +103,7 @@ public class SecurityConf {
     @Bean
     public JwtDecoder jwtDecoder() {
         try {
-
-            ClassPathResource publicKeyResource = new ClassPathResource("key.pub");
-
-
-
-            String publicKeyPEM;
-            try (InputStream inputStream = publicKeyResource.getInputStream()) {
-                publicKeyPEM = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            }
-
-            publicKeyPEM = publicKeyPEM.replace("-----BEGIN PUBLIC KEY-----", "")
-                                    .replace("-----END PUBLIC KEY-----", "")
-                                    .replaceAll("\\s+", "");
+                                    
             byte[] encoded = Base64.getDecoder().decode(publicKeyPEM);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
