@@ -47,7 +47,7 @@ public class UserLog {
     private String operation;
 
     private String method;
-
+    
     private String ipAddress;
 
     private String status; 
