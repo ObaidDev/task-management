@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,8 +9,11 @@ import { DialogTrigger } from '@radix-ui/react-dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import TagsInput from '@yaireo/tagify/dist/react.tagify';
-import '@yaireo/tagify/dist/tagify.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/store';
+import { fetchUsers, inviteUsersBulk, toggleStatus ,toggleUserStatus} from '@/store/slices/usersSlice';
+import EmailTagifyInput from '@/components/EmailTagifyInput';
+import { InviteUserRequest } from '@/types/user.types';
 
 interface UserType {
   id: string;
@@ -23,34 +26,6 @@ interface UserType {
 }
 
 const Users = () => {
-  const [users, setUsers] = useState<UserType[]>([
-    {
-      id: '1',
-      name: 'John Doe',
-      email: 'john@example.com',
-      phone: '+1 234 567 8900',
-      role: 'admin',
-      status: 'active',
-      createdAt: '2024-01-15'
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      phone: '+1 234 567 8901',
-      role: 'manager',
-      status: 'active',
-      createdAt: '2024-01-20'
-    },
-    {
-      id: '3',
-      name: 'Bob Johnson',
-      email: 'bob@example.com',
-      role: 'user',
-      status: 'inactive',
-      createdAt: '2024-01-25'
-    }
-  ]);
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -67,38 +42,38 @@ const Users = () => {
       : 'bg-gray-100 text-gray-800';
   };
 
-  const toggleUserStatus = (userId: string) => {
-    setUsers(prevUsers => 
-      prevUsers.map(user => 
-        user.id === userId 
-          ? { ...user, status: user.status === 'active' ? 'inactive' : 'active' }
-          : user
-      )
-    );
-  };
-
-  const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [invitedEmails, setInvitedEmails] = useState<string[]>([]);
-  const tagifyRef = useRef<any>(null);
 
-  // Tagify change handler
-  const handleTagifyChange = (e: any) => {
-    const tags = e.detail.value ? JSON.parse(e.detail.value) : [];
-    setInvitedEmails(tags.map((tag: any) => tag.value));
-  };
-
-  const handleInviteSubmit = (e: React.FormEvent) => {
+  const handleInviteSubmit = (e: any) => {
     e.preventDefault();
-    // Here you could send invitedEmails to backend
-    setInvitedEmails([]);
-    if (tagifyRef.current) {
-      tagifyRef.current.removeAllTags();
-    }
-    setIsDialogOpen(false);
+
+    const inviteUserRequests: InviteUserRequest[] = emails.map(email => ({ email }));
+
+    console.log('🐛 inviteUserRequests:', inviteUserRequests);
+
+    dispatch(inviteUsersBulk(inviteUserRequests)) ;
   };
 
-  const [editingClient, setEditingClient] = useState<UserType | null>(null);
+  // ********************************************//
+  const [emails, setEmails] = React.useState<string[]>([]);
+
+  const handleEmailsChange = (newEmails: string[]) => {
+    setEmails(newEmails);
+  };
+
+
+  // ********************************************//
+  const dispatch = useDispatch<AppDispatch>();
+
+  const { users, loading, error } = useSelector((state: RootState) => state.users);
+  
+  useEffect(() => {
+    dispatch(fetchUsers());
+  }, [dispatch]);
+
+
+  if (loading) return <p>Loading users...</p>;
+  if (error) return <p className="text-red-500">Error: {error}</p>;
 
   return (
     <div className="space-y-6">
@@ -125,30 +100,11 @@ const Users = () => {
             <form className="space-y-4" onSubmit={handleInviteSubmit}>
               <div className="space-y-2">
                 <Label htmlFor="emails">Emails</Label>
-                <TagsInput
-                  ref={tagifyRef}
-                  settings={{
-                    whitelist: [],
-                    delimiters: ", ",
-                    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    placeholder: "Type or paste emails and press Enter",
-                    dropdown: { enabled: 0 },
-                    maxTags: 20,
-                    enforceWhitelist: false,
-                  }}
-                  value={invitedEmails.map(email => ({ value: email }))}
-                  onChange={handleTagifyChange}
-                  name="emails"
-                  id="emails"
-                  Input={React.forwardRef((props, ref) => (
-                    <Textarea
-                      ref={ref}
-                      {...props}
-                      className="min-h-[60px] resize-y"
-                      rows={3}
-                    />
-                  ))}
+                <EmailTagifyInput
+                  onEmailsChange={handleEmailsChange}
+                  placeholder="Enter email addresses..."
                 />
+
               </div>
               <div className="flex justify-end space-x-3">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -183,7 +139,7 @@ const Users = () => {
                 <div className="w-3 h-3 bg-green-600 rounded-full"></div>
               </div>
               <div>
-                <p className="text-2xl font-bold">{users.filter(u => u.status === 'active').length}</p>
+                <p className="text-2xl font-bold">{users.filter(u => u.enabled === true).length}</p>
                 <p className="text-gray-600 text-sm">Active Users</p>
               </div>
             </div>
@@ -196,7 +152,7 @@ const Users = () => {
                 <div className="w-3 h-3 bg-red-600 rounded-full"></div>
               </div>
               <div>
-                <p className="text-2xl font-bold">{users.filter(u => u.role === 'admin').length}</p>
+                <p className="text-2xl font-bold">{users.filter(u => u.firstName === 'admin').length}</p>
                 <p className="text-gray-600 text-sm">Administrators</p>
               </div>
             </div>
@@ -209,7 +165,7 @@ const Users = () => {
                 <div className="w-3 h-3 bg-orange-600 rounded-full"></div>
               </div>
               <div>
-                <p className="text-2xl font-bold">{users.filter(u => u.role === 'manager').length}</p>
+                <p className="text-2xl font-bold">{users.filter(u => u.firstName === 'manager').length}</p>
                 <p className="text-gray-600 text-sm">Managers</p>
               </div>
             </div>
@@ -231,7 +187,7 @@ const Users = () => {
                 <TableHead>Contact</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
+                {/* <TableHead>Created</TableHead> */}
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -244,7 +200,7 @@ const Users = () => {
                         <User className="w-5 h-5 text-red-600" />
                       </div>
                       <div>
-                        <p className="font-medium">{user.name}</p>
+                        <p className="font-medium">{user.firstName}</p>
                       </div>
                     </div>
                   </TableCell>
@@ -254,36 +210,36 @@ const Users = () => {
                         <Mail className="w-3 h-3" />
                         <span>{user.email}</span>
                       </div>
-                      {user.phone && (
+                      {/* {user.phone && ( */}
                         <div className="flex items-center space-x-1 text-sm text-gray-500">
                           <Phone className="w-3 h-3" />
-                          <span>{user.phone}</span>
+                          <span>+967 873 537 6406</span>
                         </div>
-                      )}
+                      {/* )} */}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getRoleBadgeColor(user.role)}>
-                      {user.role}
+                    <Badge className={getRoleBadgeColor(user.firstName)}>
+                      {user.firstName}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getStatusBadgeColor(user.status)}>
-                      {user.status}
+                    <Badge className={getStatusBadgeColor(user.enabled ? 'active' : 'inactive')}>
+                      {user.enabled ? 'Active' : 'Inactive'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm text-gray-500">
+                  {/* <TableCell className="text-sm text-gray-500">
                     {user.createdAt}
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell>
                     <div className="flex items-center space-x-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => toggleUserStatus(user.id)}
-                        className={user.status === 'active' ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
+                        onClick={() => dispatch(toggleUserStatus(user.id))}
+                        className={user.enabled === true ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
                       >
-                        {user.status === 'active' ? 'Disable' : 'Enable'}
+                        {user.enabled === true ? 'Disable' : 'Enable'}
                       </Button>
                       <Button variant="ghost" size="sm">
                         <Edit className="w-4 h-4" />
