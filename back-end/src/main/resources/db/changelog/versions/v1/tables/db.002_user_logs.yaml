@@ -1,0 +1,80 @@
+databaseChangeLog:
+  - changeSet:
+      id: "1.0.9-create-user-logs-table"
+      author: obaid
+      labels: prod , dev
+      changes:
+        - createTable:
+            tableName: user_logs
+
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: user_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+
+
+              - column:
+                  name: username
+                  type: varchar(64)
+                  constraints:
+                    nullable: true
+
+
+              - column:
+                  name: operation
+                  type: varchar(64)
+                  constraints:
+                    nullable: true
+
+
+              - column:
+                  name: method
+                  type: varchar(64)
+                  constraints:
+                    nullable: true
+
+
+              - column:
+                  name: ip_address
+                  type: varchar(64)
+                  constraints:
+                    nullable: true
+
+
+              - column:
+                  name: status
+                  type: varchar(64)
+                  constraints:
+                    nullable: true
+
+
+              - column:
+                  name: created_at
+                  type: timestamp(6) with time zone
+                  constraints:
+                    nullable: false
+
+
+              - column:
+                  name: updated_at
+                  type: timestamp(6) with time zone
+                  constraints:
+                    nullable: false
+
+
+              - createIndex:
+                indexName: user_logs_userId_idx
+                tableName: user_logs
+                columns:
+                  - column:
+                      name: userId
