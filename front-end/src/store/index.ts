@@ -4,6 +4,8 @@ import authSlice from './slices/authSlice';
 import clientsSlice from './slices/clientsSlice';
 import invoicesSlice from './slices/invoicesSlice';
 import paymentLinksSlice from './slices/paymentLinksSlice';
+import usersReducer from './slices/usersSlice';
+
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +13,7 @@ export const store = configureStore({
     clients: clientsSlice,
     invoices: invoicesSlice,
     paymentLinks: paymentLinksSlice,
+    users: usersReducer
   },
 });
 
