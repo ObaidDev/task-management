@@ -15,11 +15,12 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 
 
-@Data 
+@Data @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -30,7 +31,7 @@ import lombok.NoArgsConstructor;
         @Index(columnList = "userId" , name = "user_logs_userId_idx")
     }
 )
-public class UserLog {
+public class UserLog extends AbstractBaseEntity {
 
 
     @Id
