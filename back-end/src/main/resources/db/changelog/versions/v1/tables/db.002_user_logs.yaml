@@ -24,6 +24,13 @@ databaseChangeLog:
 
 
               - column:
+                  name: tenant_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+
+
+              - column:
                   name: username
                   type: varchar(64)
                   constraints:
@@ -70,11 +77,29 @@ databaseChangeLog:
                   type: timestamp(6) with time zone
                   constraints:
                     nullable: false
+  
 
-
-              - createIndex:
-                indexName: user_logs_userId_idx
+  - changeSet:
+        id: "1.0.9-create-user_logs-index"
+        author: obaid
+        changes:
+            - createIndex:
                 tableName: user_logs
+                indexName: user_logs_tenantid_idx
                 columns:
-                  - column:
-                      name: userId
+                - column:
+                    name: tenant_id
+                unique: false
+                tableSpace: pg_default
+
+
+            - createIndex:
+                tableName: user_logs
+                indexName: idx_user_logs_tenant_id_with_user_id
+                columns:
+                - column:
+                    name: tenant_id
+                - column:
+                    name: id
+                unique: false
+                tableSpace: pg_default
