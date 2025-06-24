@@ -51,7 +51,7 @@ databaseChangeLog:
 
               - column:
                   name: estimate_date
-                  type: date
+                  type: timestamp(6) with time zone
                   constraints:
                     nullable: true
 
