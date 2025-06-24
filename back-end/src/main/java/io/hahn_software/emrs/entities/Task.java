@@ -1,6 +1,7 @@
 package io.hahn_software.emrs.entities;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -65,8 +66,8 @@ public class Task extends AbstractBaseEntity {
     private String description;
 
 
-     @Column(name = "estimate_date")
-    private java.time.LocalDate estimateDate;
+    @Column(name = "estimate_date")
+    private Instant estimateDate;
 
 
     @Column(name = "assign_to_user_id", nullable = false)
