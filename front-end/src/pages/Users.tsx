@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Mail, Phone, User } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, Phone, User, Loader2, AlertCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import { AppDispatch, RootState } from '@/store';
 import { fetchUsers, inviteUsersBulk, toggleStatus ,toggleUserStatus} from '@/store/slices/usersSlice';
 import EmailTagifyInput from '@/components/EmailTagifyInput';
 import { InviteUserRequest } from '@/types/user.types';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface UserType {
   id: string;
@@ -70,10 +71,29 @@ const Users = () => {
   useEffect(() => {
     dispatch(fetchUsers());
   }, [dispatch]);
+  
 
+  
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <Loader2 className="animate-spin w-6 h-6 text-muted-foreground" />
+        <span className="ml-2 text-muted-foreground">Loading users...</span>
+      </div>
+    );
+  }
 
-  if (loading) return <p>Loading users...</p>;
-  if (error) return <p className="text-red-500">Error: {error}</p>;
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          {error}
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -236,7 +256,10 @@ const Users = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => dispatch(toggleUserStatus(user.id))}
+                        onClick={() => dispatch(toggleUserStatus({ 
+                          userId: user.id, 
+                          newStatus: !user.enabled 
+                        }))}
                         className={user.enabled === true ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
                       >
                         {user.enabled === true ? 'Disable' : 'Enable'}

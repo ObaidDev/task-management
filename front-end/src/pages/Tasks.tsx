@@ -1,66 +1,87 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/store';
+import { RootState, AppDispatch } from '@/store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Calendar, Clock, CheckCircle2, Circle, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Calendar, Clock, CheckCircle2, Circle, AlertCircle, Loader } from 'lucide-react';
+import { createTasks, deleteTask, fetchPaginatedTasks } from '@/store/slices/taskSlice';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { TASK_PRIORITIES, TASK_STATUSES, TaskPriority, TaskRequest, TaskStatus } from '@/types/task.types';
+import { Label } from '@radix-ui/react-label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar28 } from '@/components/ui/calendar28';
+import { TaskForm, TaskFormValues } from '@/components/task/TaskForm';
 
-interface TaskType {
-  id: string;
-  title: string;
-  description: string;
-  status: 'todo' | 'in-progress' | 'completed' | 'overdue';
-  priority: 'low' | 'medium' | 'high';
-  assignee: string;
-  dueDate: string;
-  createdAt: string;
-}
+
+
 
 const Tasks = () => {
-  const [tasks] = useState<TaskType[]>([
-    {
-      id: '1',
-      title: 'Update invoice template',
-      description: 'Redesign the invoice template to match new branding',
-      status: 'in-progress',
-      priority: 'high',
-      assignee: 'John Doe',
-      dueDate: '2024-06-25',
-      createdAt: '2024-06-15'
-    },
-    {
-      id: '2',
-      title: 'Client onboarding process',
-      description: 'Streamline the client onboarding workflow',
-      status: 'todo',
-      priority: 'medium',
-      assignee: 'Jane Smith',
-      dueDate: '2024-06-30',
-      createdAt: '2024-06-18'
-    },
-    {
-      id: '3',
-      title: 'Payment gateway integration',
-      description: 'Integrate new payment gateway for faster processing',
-      status: 'completed',
-      priority: 'high',
-      assignee: 'Bob Johnson',
-      dueDate: '2024-06-20',
-      createdAt: '2024-06-10'
-    },
-    {
-      id: '4',
-      title: 'Database backup',
-      description: 'Set up automated database backup system',
-      status: 'overdue',
-      priority: 'high',
-      assignee: 'John Doe',
-      dueDate: '2024-06-18',
-      createdAt: '2024-06-05'
+
+
+  const dispatch = useDispatch<AppDispatch>();
+  const { tasks, loading, error, pagination, hasMore } = useSelector((state: RootState) => state.tasks);
+
+  const scrollRef = useRef<HTMLDivElement>(null); 
+
+  const [currentPage, setCurrentPage] = useState(0);
+
+  useEffect(() => {
+    dispatch(fetchPaginatedTasks({ page: currentPage, pageSize: pagination.pageSize }));
+  }, [dispatch, currentPage, pagination.pageSize]);
+
+
+  // Handle scroll event
+  const handleScroll = () => {
+    if (loading || !hasMore || !scrollRef.current) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+
+    if (scrollHeight - scrollTop <= clientHeight + 100) {
+      setCurrentPage((prev) => prev + 1);
     }
-  ]);
+  };
+
+  const handleDelete = (taskId: number, taskName: string) => {
+    
+    if (window.confirm(`Are you sure you want to delete task "${taskName}"?`)) {
+      dispatch(deleteTask(taskId))
+        .unwrap()
+        .then(() => {
+          toast.success(`Task "${taskName}" has been deleted.` ,
+            {
+            style: {
+              background: '#10B981',
+              color: 'white',
+            },
+            }
+          );
+        })
+        .catch((error) => {
+          toast.error(`Failed to delete task: ${error}` , {
+
+          style: {
+            background: '#EF4444',
+            color: 'white',
+          },
+          });
+        });
+    }
+  };
+
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    el.addEventListener('scroll', handleScroll);
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, [loading, hasMore]);
+
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -73,19 +94,99 @@ const Tasks = () => {
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'in-progress': return 'bg-blue-100 text-blue-800';
-      case 'overdue': return 'bg-red-100 text-red-800';
+      case 'DONE': return 'bg-green-100 text-green-800';
+      case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800';
+      case 'BLOCKED': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getPriorityBadgeColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-orange-100 text-orange-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+  switch (priority) {
+    case 'CRITICAL': return 'bg-red-200 text-red-900';
+    case 'HIGH': return 'bg-red-100 text-red-800';
+    case 'MEDIUM': return 'bg-orange-100 text-orange-800';
+    case 'LOW': return 'bg-green-100 text-green-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+  };
+
+
+  // form
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<TaskRequest | null>(null);
+
+  const [formData, setFormData] = useState<TaskRequest>({
+    name: '',
+    status: 'OPEN',
+    priority: 'MEDIUM',
+    description: '',
+    estimateDate: 0,
+    assignToUserId: '',
+    userName: '',
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleFormSubmit = async (data: TaskFormValues) => {
+  try {
+    if (editingTask) {
+      // Handle update case (when you implement updateTask thunk)
+      // const loadingToast = toast.loading('Updating task...');
+      // await dispatch(updateTask({ ...data, id: editingTask.id })).unwrap();
+      // toast.success('Task updated successfully', { id: loadingToast });
+      console.log('Update not implemented yet');
+    } else {
+      // Handle create case
+      const loadingToast = toast.loading('Creating task...');
+      
+      // Convert TaskFormValues to TaskRequest format
+      const taskRequest: TaskRequest = {
+        name: data.name,
+        status: data.status as TaskStatus,
+        priority: data.priority as TaskPriority,
+        description: data.description,
+        estimateDate: data.estimateDate, // Assuming this is already a timestamp
+        assignToUserId: data.assignToUserId,
+        userName: data.userName,
+      };
+      
+      // Create array since backend expects a list
+      const result = await dispatch(createTasks([taskRequest])).unwrap();
+      
+      toast.success('Task created successfully', { 
+        id: loadingToast ,
+        style: {
+          background: '#10B981',
+          color: 'white',
+        },
+      });
+
+      setIsDialogOpen(false)
+      setEditingTask(undefined)
+
+    }
+    
+    // Close dialog and reset state on success
+    // setDialogOpen(false);
+    // setEditingTask(undefined);
+    
+    } catch (error) {
+      // Handle error case
+      const errorMessage = error as string || 'An unexpected error occurred';
+      toast.error(errorMessage);
+      console.error('Form submission error:', error);
+      
+      // Keep dialog open on error so user can retry
     }
   };
 
@@ -97,10 +198,13 @@ const Tasks = () => {
           <h1 className="text-3xl font-bold text-gray-900">Tasks</h1>
           <p className="text-gray-600 mt-2">Manage and track your team's tasks and progress</p>
         </div>
-        <Button className="bg-red-600 hover:bg-red-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Task
-        </Button>
+        {/* Add Task Dialog Trigger + Dialog */}
+        <TaskForm
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          editingTask={editingTask}
+          onSubmit={handleFormSubmit}
+        />
       </div>
 
       {/* Stats Cards */}
@@ -110,7 +214,7 @@ const Tasks = () => {
             <div className="flex items-center space-x-2">
               <Circle className="w-8 h-8 text-gray-600" />
               <div>
-                <p className="text-2xl font-bold">{tasks.filter(t => t.status === 'todo').length}</p>
+                <p className="text-2xl font-bold">{tasks.filter(t => t.status === 'OPEN').length}</p>
                 <p className="text-gray-600 text-sm">To Do</p>
               </div>
             </div>
@@ -121,7 +225,7 @@ const Tasks = () => {
             <div className="flex items-center space-x-2">
               <Clock className="w-8 h-8 text-blue-600" />
               <div>
-                <p className="text-2xl font-bold">{tasks.filter(t => t.status === 'in-progress').length}</p>
+                <p className="text-2xl font-bold">{tasks.filter(t => t.status === 'IN_PROGRESS').length}</p>
                 <p className="text-gray-600 text-sm">In Progress</p>
               </div>
             </div>
@@ -132,8 +236,8 @@ const Tasks = () => {
             <div className="flex items-center space-x-2">
               <CheckCircle2 className="w-8 h-8 text-green-600" />
               <div>
-                <p className="text-2xl font-bold">{tasks.filter(t => t.status === 'completed').length}</p>
-                <p className="text-gray-600 text-sm">Completed</p>
+                <p className="text-2xl font-bold">{tasks.filter(t => t.status === 'DONE').length}</p>
+                <p className="text-gray-600 text-sm">Done</p>
               </div>
             </div>
           </CardContent>
@@ -143,8 +247,8 @@ const Tasks = () => {
             <div className="flex items-center space-x-2">
               <AlertCircle className="w-8 h-8 text-red-600" />
               <div>
-                <p className="text-2xl font-bold">{tasks.filter(t => t.status === 'overdue').length}</p>
-                <p className="text-gray-600 text-sm">Overdue</p>
+                <p className="text-2xl font-bold">{tasks.filter(t => t.status === 'BLOCKED').length}</p>
+                <p className="text-gray-600 text-sm">Blocked</p>
               </div>
             </div>
           </CardContent>
@@ -152,7 +256,7 @@ const Tasks = () => {
       </div>
 
       {/* Tasks List */}
-      <Card>
+      <Card className="h-[600px] overflow-y-auto"  ref={scrollRef}>
         <CardHeader>
           <CardTitle>All Tasks</CardTitle>
           <CardDescription>Track and manage all tasks across your organization</CardDescription>
@@ -166,14 +270,14 @@ const Tasks = () => {
                     {getStatusIcon(task.status)}
                   </div>
                   <div className="flex-grow">
-                    <h3 className="font-medium text-gray-900">{task.title}</h3>
+                    <h3 className="font-bold text-gray-900">{task.name}</h3>
                     <p className="text-sm text-gray-600 mt-1">{task.description}</p>
                     <div className="flex items-center space-x-4 text-sm text-gray-500 mt-2">
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-3 h-3" />
-                        <span>Due: {task.dueDate}</span>
+                        <span>Due: {new Date(task.estimateDate).toLocaleDateString()}</span>
                       </div>
-                      <span>Assigned to: {task.assignee}</span>
+                      <span>Assigned to: {task.userName}</span>
                     </div>
                   </div>
                 </div>
@@ -188,7 +292,12 @@ const Tasks = () => {
                     <Button variant="ghost" size="sm">
                       <Edit className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700"
+                      onClick={() => handleDelete(task.id, task.name)}
+                    >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -196,6 +305,9 @@ const Tasks = () => {
               </div>
             ))}
           </div>
+
+          {loading && <p className="text-center py-4">Loading more tasks...</p>}
+          {!hasMore && <p className="text-center py-4 text-gray-500">No more tasks to load</p>}
         </CardContent>
       </Card>
     </div>
