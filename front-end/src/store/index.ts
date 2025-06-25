@@ -5,6 +5,7 @@ import clientsSlice from './slices/clientsSlice';
 import invoicesSlice from './slices/invoicesSlice';
 import paymentLinksSlice from './slices/paymentLinksSlice';
 import usersReducer from './slices/usersSlice';
+import tasksReducer from './slices/taskSlice';
 
 
 export const store = configureStore({
@@ -13,7 +14,8 @@ export const store = configureStore({
     clients: clientsSlice,
     invoices: invoicesSlice,
     paymentLinks: paymentLinksSlice,
-    users: usersReducer
+    users: usersReducer ,
+    tasks: tasksReducer
   },
 });
 
