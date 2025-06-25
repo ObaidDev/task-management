@@ -38,14 +38,15 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+    <div className="fixed top-0 left-0 w-64 h-screen bg-white shadow-lg border-r border-gray-200 flex flex-col justify-between z-50">
+      
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center space-x-2">
-              <img 
-                src="/logo.svg" 
-                alt="BillFlow Logo" 
-                className="w-16 h-16"
-              />
+          <img 
+            src="/logo.svg" 
+            alt="BillFlow Logo" 
+            className="w-16 h-16"
+          />
           <span className="text-xl font-bold text-gray-900">BillFlow</span>
         </div>
       </div>
@@ -76,6 +77,7 @@ const Sidebar = () => {
         </ul>
       </nav>
 
+      {/* Bottom: Logout */}
       <div className="p-4 border-t border-gray-200">
         <button
           onClick={handleLogout}
