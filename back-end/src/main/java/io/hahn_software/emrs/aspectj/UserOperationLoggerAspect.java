@@ -43,7 +43,7 @@ public class UserOperationLoggerAspect {
 
     
     @Around("@annotation(io.hahn_software.emrs.annotations.LogUserOperation)")
-	public void logUserOperation(ProceedingJoinPoint joinPoint) throws Throwable {
+	public Object logUserOperation(ProceedingJoinPoint joinPoint) throws Throwable {
 
 		log.debug("Hello 🔖") ;
 
@@ -102,13 +102,16 @@ public class UserOperationLoggerAspect {
 
         try {
             // Proceed with the method execution
-           joinPoint.proceed();
+            Object result = joinPoint.proceed();
 
             // Update the log entry for successful completion
             userLog.setStatus("SUCCESS");
             userLog.setUpdatedAt(Instant.now());
             userLogRepository.update(userLog); // Update the log
 
+
+            return result;
+            
         } catch (Exception e) {
 
             // Update the log entry for failure
