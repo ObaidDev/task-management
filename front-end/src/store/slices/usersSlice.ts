@@ -1,6 +1,7 @@
 import { userApi } from '@/lib/axios';
 import { InviteUserRequest, UserResponse } from '@/types/user.types';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { toast } from 'sonner';
 
 
 
@@ -31,27 +32,43 @@ export const fetchUsers = createAsyncThunk(
   }
 );
 
+
+// Cleaned: pass intended newStatus directly
 export const toggleUserStatus = createAsyncThunk(
   'users/toggleUserStatus',
-  async (userId: string, thunkAPI) => {
+  async ({ userId, newStatus }: { userId: string; newStatus: boolean }, thunkAPI) => {
     try {
-      // Get current state to find the user and current status
-      const state = thunkAPI.getState() as { users: UsersState };
-      const user = state.users.users.find(u => u.id === userId);
-      if (!user) throw new Error('User not found');
-
-      const newStatus = !user.enabled;
 
       // API call to update user status
       await userApi.put(`/realms/task-swiftly/users-services/users/${userId}/status?enabled=${newStatus}`);
 
+      toast.success(
+        `User ${newStatus ? 'enabled' : 'disabled'} successfully`,
+        {
+          style: {
+            background: '#10B981',
+            color: 'white',
+          },
+        }
+      );
+      
       return { userId, newStatus };
     } catch (err: any) {
+
+      const errorMessage = err.response?.data?.message || 'Failed to update user status';
+
+      toast.error(errorMessage, {
+        style: {
+          background: '#EF4444',
+          color: 'white',
+        },
+      });
+      
       return thunkAPI.rejectWithValue(err.response?.data?.message || 'Failed to update user status');
     }
   }
 );
-
+  
 
 export const inviteUsersBulk = createAsyncThunk(
   'users/inviteUsersBulk',
@@ -61,9 +78,30 @@ export const inviteUsersBulk = createAsyncThunk(
         '/realms/task-swiftly/users-services/invite-users-bulk',
         payload
       );
+
+      toast.success(
+        `Successfully invited ${payload.length} user${payload.length > 1 ? 's' : ''}`,
+        {
+          style: {
+            background: '#10B981',
+            color: 'white',
+          },
+        }
+      );
+
+
       return response.data;
     } catch (err: any) {
-      return thunkAPI.rejectWithValue(err.response?.data?.message || 'Failed to invite users');
+        const errorMessage = err.response?.data?.message || 'Failed to invite users';
+        // Error toast
+        toast.error(errorMessage, {
+          style: {
+            background: '#EF4444',
+            color: 'white',
+          },
+        });
+        
+        return thunkAPI.rejectWithValue(errorMessage);
     }
   }
 );
@@ -83,6 +121,8 @@ const usersSlice = createSlice({
   },
   extraReducers: builder => {
     builder
+
+      // fetchUsers
       .addCase(fetchUsers.pending, state => {
         state.loading = true;
         state.error = null;
@@ -95,11 +135,37 @@ const usersSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
+
+
+      // toggleUserStatus
+      .addCase(toggleUserStatus.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(toggleUserStatus.fulfilled, (state, action) => {
+
         const user = state.users.find(u => u.id === action.payload.userId);
         if (user) {
           user.enabled = action.payload.newStatus;
         }
+        state.loading = false;
+      })
+      .addCase(toggleUserStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // inviteUsersBulk
+      .addCase(inviteUsersBulk.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(inviteUsersBulk.fulfilled, state => {
+        state.loading = false;
+      })
+      .addCase(inviteUsersBulk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   }
 });
