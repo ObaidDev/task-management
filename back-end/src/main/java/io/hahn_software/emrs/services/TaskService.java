@@ -49,7 +49,7 @@ public class TaskService extends TrackSwiftlyServiceAbstract<Long , TaskRequestD
 
         int count = taskRepo.deleteByIds(ids); 
 
-        return OperationResult.of(count) ;
+        return OperationResult.of(count , "Deleted " + count + " tasks successfully.") ;
         
     }
 
