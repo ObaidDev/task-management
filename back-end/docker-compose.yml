@@ -12,14 +12,14 @@ services:
     restart: unless-stopped
 
   hahn_task:
-    # build: .
-    image: lasthour/hahn_tasks:1.4
+    build: .
     environment:
       DB_HOST: postgres:5432
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_SCHEMA: ${DB_SCHEMA}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
 
     ports:
       - '${HOST_PORT:-8080}:8080'
