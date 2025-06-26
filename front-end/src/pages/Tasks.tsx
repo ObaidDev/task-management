@@ -5,17 +5,11 @@ import { RootState, AppDispatch } from '@/store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Calendar, Clock, CheckCircle2, Circle, AlertCircle, Loader } from 'lucide-react';
-import { createTasks, deleteTask, fetchPaginatedTasks } from '@/store/slices/taskSlice';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {Edit, Trash2, Calendar, Clock, CheckCircle2, Circle, AlertCircle } from 'lucide-react';
+import { createTasks, deleteTask, fetchPaginatedTasks, updateTask } from '@/store/slices/taskSlice';
 import { toast } from 'sonner';
-import { TASK_PRIORITIES, TASK_STATUSES, TaskPriority, TaskRequest, TaskStatus } from '@/types/task.types';
-import { Label } from '@radix-ui/react-label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar28 } from '@/components/ui/calendar28';
-import { TaskForm, TaskFormValues } from '@/components/task/TaskForm';
+import { TaskPriority, TaskRequest, TaskStatus } from '@/types/task.types';
+import { getChangedFields, TaskForm, TaskFormValues } from '@/components/task/TaskForm';
 
 
 
@@ -24,7 +18,7 @@ const Tasks = () => {
 
 
   const dispatch = useDispatch<AppDispatch>();
-  const { tasks, loading, error, pagination, hasMore } = useSelector((state: RootState) => state.tasks);
+  const { tasks, loading, pagination, hasMore } = useSelector((state: RootState) => state.tasks);
 
   const scrollRef = useRef<HTMLDivElement>(null); 
 
@@ -116,71 +110,80 @@ const Tasks = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskRequest | null>(null);
+  const [editingTaskId, setEditingTaskId] = useState<number | undefined>();
 
-  const [formData, setFormData] = useState<TaskRequest>({
-    name: '',
-    status: 'OPEN',
-    priority: 'MEDIUM',
-    description: '',
-    estimateDate: 0,
-    assignToUserId: '',
-    userName: '',
-  });
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
 
   const handleFormSubmit = async (data: TaskFormValues) => {
-  try {
-    if (editingTask) {
-      // Handle update case (when you implement updateTask thunk)
-      // const loadingToast = toast.loading('Updating task...');
-      // await dispatch(updateTask({ ...data, id: editingTask.id })).unwrap();
-      // toast.success('Task updated successfully', { id: loadingToast });
-      console.log('Update not implemented yet');
-    } else {
-      // Handle create case
-      const loadingToast = toast.loading('Creating task...');
-      
-      // Convert TaskFormValues to TaskRequest format
-      const taskRequest: TaskRequest = {
-        name: data.name,
-        status: data.status as TaskStatus,
-        priority: data.priority as TaskPriority,
-        description: data.description,
-        estimateDate: data.estimateDate, // Assuming this is already a timestamp
-        assignToUserId: data.assignToUserId,
-        userName: data.userName,
-      };
-      
-      // Create array since backend expects a list
-      const result = await dispatch(createTasks([taskRequest])).unwrap();
-      
-      toast.success('Task created successfully', { 
-        id: loadingToast ,
-        style: {
-          background: '#10B981',
-          color: 'white',
-        },
-      });
+    try {
+      if (editingTask && editingTaskId) {
+        const changedFields = getChangedFields(editingTask, data);
 
-      setIsDialogOpen(false)
-      setEditingTask(undefined)
+        // Check if there are any changes
+        if (Object.keys(changedFields).length === 0) {
+          toast.info('No changes detected. Please modify at least one field to update the task.', {
+            style: {
+              background: '#3B82F6',
+              color: 'white',
+            },
+          });
+          return; // Exit early if no changes
+        }
+      
+        const loadingToast = toast.loading('Updating task...');
+        
+        await dispatch(updateTask({ 
+          id: editingTaskId, 
+          taskData: changedFields as TaskRequest // Only send changed fields
+        })).unwrap();
+        
+        toast.success('Task updated successfully', { 
+          id: loadingToast,
+          style: {
+            background: '#10B981',
+            color: 'white',
+          },
+        });
+        
+        setIsDialogOpen(false);
+        setEditingTask(undefined);
+        
+      } else {
+        // Handle create case
+        const loadingToast = toast.loading('Creating task...');
+        
+        // Convert TaskFormValues to TaskRequest format
+        const taskRequest: TaskRequest = {
+          name: data.name,
+          status: data.status as TaskStatus,
+          priority: data.priority as TaskPriority,
+          description: data.description,
+          estimateDate: data.estimateDate, // Assuming this is already a timestamp
+          assignToUserId: data.assignToUserId,
+          userName: data.userName,
+        };
+        
+        // Create array since backend expects a list
+        const result = await dispatch(createTasks([taskRequest])).unwrap();
+        
+        toast.success(`Task created successfully`, { 
+          id: loadingToast ,
+          style: {
+            background: '#10B981',
+            color: 'white',
+          },
+        });
 
+        setIsDialogOpen(false)
+        setEditingTask(undefined)
+
+      }
+      
+      // Close dialog and reset state on success
+      // setDialogOpen(false);
+      // setEditingTask(undefined);
+      
     }
-    
-    // Close dialog and reset state on success
-    // setDialogOpen(false);
-    // setEditingTask(undefined);
-    
-    } catch (error) {
+    catch (error) {
       // Handle error case
       const errorMessage = error as string || 'An unexpected error occurred';
       toast.error(errorMessage);
@@ -289,9 +292,18 @@ const Tasks = () => {
                     {task.status.replace('-', ' ')}
                   </Badge>
                   <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="sm">
-                      <Edit className="w-4 h-4" />
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditingTaskId(task.id);
+                          setEditingTask(task); // <- this sets the task to edit
+                          setIsDialogOpen(true); // <- opens the form
+                        }}
+                      >
+                        <Edit className="w-4 h-4" />
                     </Button>
+
                     <Button
                       variant="ghost"
                       size="sm"
