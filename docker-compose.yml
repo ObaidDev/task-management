@@ -46,34 +46,6 @@ services:
     networks:
       - hahn_task_network
 
-
-  keycloak:
-    image: lasthour/trackswiftlyuser:1.0.9-red-version
-    command: start
-    environment:
-
-      KC_HOSTNAME_STRICT: false
-      KC_HTTP_ENABLED: true
-      KC_HOSTNAME_STRICT_HTTPS: false
-      KC_HEALTH_ENABLED: true
-      KC_HOSTNAME_ADMIN_URL: ${VITE_USER_API_URL}
-      KC_HOSTNAME_URL: ${VITE_USER_API_URL}
-      KC_PROXY: edge                                
-      KC_PROXY_HEADERS: xforwarded
-
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres/${DB_NAME}
-      KC_DB_USERNAME: ${DB_USER}
-      KC_DB_PASSWORD: ${DB_PASSWORD}
-
-    ports:
-      - "8084:8080"
-
-    networks:
-      - hahn_task_network
-
 volumes:
   postgres_hahn_task_data:
     driver: local
