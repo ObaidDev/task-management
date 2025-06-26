@@ -25,12 +25,18 @@ import {
 } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { Calendar28 } from '@/components/ui/calendar28';
-import { TASK_STATUSES, TASK_PRIORITIES } from '@/types/task.types';
+import { TASK_STATUSES, TASK_PRIORITIES, TaskRequest, TaskStatus, TaskPriority } from '@/types/task.types';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { fetchUsers } from '@/store/slices/usersSlice';
 
+interface TaskFormProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  editingTask?: TaskFormValues;
+  onSubmit?: (data: TaskFormValues) => void;
+}
 // Zod schema
 const taskSchema = z.object({
   name: z.string().min(1, 'Task name is required'),
@@ -44,12 +50,43 @@ const taskSchema = z.object({
 
 export type TaskFormValues = z.infer<typeof taskSchema>;
 
-interface TaskFormProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  editingTask?: TaskFormValues;
-  onSubmit?: (data: TaskFormValues) => void;
-}
+
+
+// Helper function to detect changes between original and new data
+export const getChangedFields = (original: TaskFormValues, updated: TaskFormValues): Partial<TaskRequest> => {
+    const changes: Partial<TaskRequest> = {};
+    
+    // Compare each field and only include changed ones
+    if (original.name !== updated.name) {
+      changes.name = updated.name;
+    }
+    
+    if (original.status !== updated.status) {
+      changes.status = updated.status as TaskStatus;
+    }
+    
+    if (original.priority !== updated.priority) {
+      changes.priority = updated.priority as TaskPriority;
+    }
+    
+    if (original.description !== updated.description) {
+      changes.description = updated.description;
+    }
+    
+    if (original.estimateDate !== updated.estimateDate) {
+      changes.estimateDate = updated.estimateDate;
+    }
+    
+    if (original.assignToUserId !== updated.assignToUserId) {
+      changes.assignToUserId = updated.assignToUserId;
+    }
+    
+    if (original.userName !== updated.userName) {
+      changes.userName = updated.userName;
+    }
+    
+    return changes;
+};
 
 export const TaskForm: React.FC<TaskFormProps> = ({ isOpen, onOpenChange, editingTask, onSubmit }) => {
   const {
