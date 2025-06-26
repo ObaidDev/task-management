@@ -3,6 +3,17 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# env variables
+
+ARG VITE_USER_API_URL
+ARG VITE_BACKEND_API_URL
+ARG VITE_ENV
+
+ENV VITE_USER_API_URL=$VITE_USER_API_URL
+ENV VITE_BACKEND_API_URL=$VITE_BACKEND_API_URL
+ENV VITE_ENV=$VITE_ENV
+
+
 # Install pnpm and dependencies
 COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm && pnpm install
@@ -11,7 +22,7 @@ RUN npm install -g pnpm && pnpm install
 COPY . .
 
 # Build the app
-RUN pnpm run build --mode development
+RUN pnpm run build
 
 # === Stage 2: Serve with Nginx ===
 FROM nginx:stable-alpine AS production
