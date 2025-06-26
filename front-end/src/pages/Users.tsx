@@ -15,6 +15,7 @@ import { fetchUsers, inviteUsersBulk, toggleStatus ,toggleUserStatus} from '@/st
 import EmailTagifyInput from '@/components/EmailTagifyInput';
 import { InviteUserRequest } from '@/types/user.types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { toast } from 'sonner';
 
 interface UserType {
   id: string;
@@ -47,12 +48,36 @@ const Users = () => {
 
   const handleInviteSubmit = (e: any) => {
     e.preventDefault();
-
+    
     const inviteUserRequests: InviteUserRequest[] = emails.map(email => ({ email }));
-
     console.log('🐛 inviteUserRequests:', inviteUserRequests);
-
-    dispatch(inviteUsersBulk(inviteUserRequests)) ;
+    
+    // Show loading toast
+    const loadingToast = toast.loading('Inviting users...');
+    
+    // Dispatch the invite action
+    dispatch(inviteUsersBulk(inviteUserRequests))
+      .then(() => {
+        toast.dismiss(loadingToast);
+        
+        toast.success(
+          'Users invited successfully!' , {
+          style: {
+            background: '#10B981',
+            color: 'white',
+          },
+        });
+        
+        // Close the dialog and reset form
+        setIsDialogOpen(false);
+        setEmails([]); // Clear emails if you have this state
+      })
+      .catch((error: any) => {
+        // Error - dismiss loading toast and show error message
+        toast.dismiss(loadingToast);
+        toast.error('Failed to invite users. Please try again.');
+        console.error('Invite error:', error);
+      });
   };
 
   // ********************************************//
@@ -74,14 +99,14 @@ const Users = () => {
   
 
   
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-40">
-        <Loader2 className="animate-spin w-6 h-6 text-muted-foreground" />
-        <span className="ml-2 text-muted-foreground">Loading users...</span>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex justify-center items-center h-40">
+  //       <Loader2 className="animate-spin w-6 h-6 text-muted-foreground" />
+  //       <span className="ml-2 text-muted-foreground">Loading users...</span>
+  //     </div>
+  //   );
+  // }
 
   if (error) {
     return (
