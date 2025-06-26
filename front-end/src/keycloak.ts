@@ -1,9 +1,9 @@
 import Keycloak from 'keycloak-js';
 
 const keycloak = new Keycloak({
-  url: 'http://localhost:8081', // Replace with your Keycloak server URL
-  realm: 'task-swiftly', // Replace with your realm
-  clientId: 'hahn-task-management', // Replace with your clientId
+  url: import.meta.env.VITE_USER_API_URL,
+  realm: import.meta.env.VITE_REALM,
+  clientId: import.meta.env.VITE_REALM_CLIENT, 
 });
 
 export default keycloak; 
