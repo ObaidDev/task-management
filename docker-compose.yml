@@ -39,8 +39,10 @@ services:
         VITE_USER_API_URL: ${VITE_USER_API_URL}
         VITE_BACKEND_API_URL: ${VITE_BACKEND_API_URL}
         VITE_ENV: ${VITE_ENV}
+        VITE_REALM: ${VITE_REALM}
+        VITE_REALM_CLIENT: ${VITE_REALM_CLIENT}
     ports:
-      - "3000:80"
+      - "5173:80"
     networks:
       - hahn_task_network
 
