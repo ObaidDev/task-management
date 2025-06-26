@@ -1,4 +1,4 @@
-# 📋 Tasky — Multi-Tenant Task Management Application
+# 📋 Tasky Multi-Tenant Task Management Application
 
 > A modern, multi-tenant task management solution built with Java Spring Boot backend and React frontend.
 
@@ -10,8 +10,8 @@
 
 ## 🚀 Features
 
-- ✅ **Multi-Tenant Architecture** – Isolated data per organization
-- 👥 **User Invitation System** – Invite coworkers via email
+- ✅ **Multi-Tenant Architecture** Isolated data per organization
+- 👥 **User Invitation System** Invite coworkers via email
 - 📝 **Task Management**
   - Create, Read, Update, Delete (CRUD)
   - Assign tasks to users
@@ -59,11 +59,11 @@ Once started:
 ____________
 
 ### 🧪 Usage Instructions :
-1. Sign Up – Create an account and your tenant space.
-2. Invite Coworkers – Use the invitation system to add teammates.
-3. Create Tasks – Add new tasks, set due dates, priorities, and descriptions.
-4. Assign Tasks – Allocate tasks to specific users within your tenant.
-5. Manage Tasks – Edit or delete tasks as needed.
+1. Sign Up Create an account and your tenant space.
+2. Invite Coworkers Use the invitation system to add teammates.
+3. Create Tasks Add new tasks, set due dates, priorities, and descriptions.
+4. Assign Tasks Allocate tasks to specific users within your tenant.
+5. Manage Tasks Edit or delete tasks as needed.
 
 ____________
 
