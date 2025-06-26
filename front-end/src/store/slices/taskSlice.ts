@@ -39,7 +39,7 @@ const initialState: TasksState = {
 };
 
 
-
+// ################################################### Fetch Paginated Tasks ####################################################
 
 export const fetchPaginatedTasks = createAsyncThunk<
   PageTaskResponseDto,        // Return type
@@ -62,6 +62,7 @@ export const fetchPaginatedTasks = createAsyncThunk<
 );
 
 
+// ################################################### Delete Task ####################################################
 
 export const deleteTask = createAsyncThunk<
   number,              // Return type: deleted task id
@@ -84,6 +85,8 @@ export const deleteTask = createAsyncThunk<
 );
 
 
+// ################################################### Create Tasks ####################################################
+
 
 export const createTasks = createAsyncThunk<
   TaskResponse[],          
@@ -104,6 +107,34 @@ export const createTasks = createAsyncThunk<
 );
 
 
+// ################################################### Update Task ####################################################
+
+export const updateTask = createAsyncThunk<
+  { id: number; taskData: TaskRequest; result: OparationResult }, // Return type: id, taskData, and operation result
+  { id: number; taskData: TaskRequest }, // Argument: task id and update data
+  { rejectValue: string }
+>(
+  'tasks/updateTask',
+  async ({ id, taskData }, thunkAPI) => {
+    try {
+      const response = await backApi.put<OparationResult>(`/gw-tasks/tasks/${id}`, taskData);
+      
+      if (response.data.affectedRecords > 0) {
+        return { id, taskData, result: response.data };
+      } else {
+        return thunkAPI.rejectWithValue(response.data.message || 'No records were updated');
+      }
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || 'Failed to update task'
+      );
+    }
+  }
+);
+
+
+
+// ################################################### Task Slice ####################################################
 
 const taskSlice = createSlice({
   name: 'tasks',
@@ -169,8 +200,34 @@ const taskSlice = createSlice({
     .addCase(createTasks.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload || 'Failed to create tasks';
-    });
-}
+    })
+
+
+
+    // Handle updateTask
+    .addCase(updateTask.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(updateTask.fulfilled, (state, action) => {
+      state.loading = false;
+      const { id, taskData } = action.payload;
+      
+      // Find and update the task in the tasks array
+      const taskIndex = state.tasks.findIndex(task => task.id === id);
+      if (taskIndex !== -1) {
+        state.tasks[taskIndex] = {
+          ...state.tasks[taskIndex],
+          ...taskData,
+          id,
+        };
+      }
+    })
+    .addCase(updateTask.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload || 'Failed to update task';
+    })
+    }
 
 
 });
