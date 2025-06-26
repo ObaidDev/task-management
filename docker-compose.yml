@@ -56,8 +56,8 @@ services:
       KC_HTTP_ENABLED: true
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_HEALTH_ENABLED: true
-      KC_HOSTNAME_ADMIN_URL: https://tasky.trackswiftly.com
-      KC_HOSTNAME_URL: https://tasky.trackswiftly.com 
+      KC_HOSTNAME_ADMIN_URL: ${VITE_USER_API_URL}
+      KC_HOSTNAME_URL: ${VITE_USER_API_URL}
       KC_PROXY: edge                                
       KC_PROXY_HEADERS: xforwarded
 
