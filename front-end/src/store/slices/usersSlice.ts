@@ -79,16 +79,6 @@ export const inviteUsersBulk = createAsyncThunk(
         payload
       );
 
-      toast.success(
-        `Successfully invited ${payload.length} user${payload.length > 1 ? 's' : ''}`,
-        {
-          style: {
-            background: '#10B981',
-            color: 'white',
-          },
-        }
-      );
-
 
       return response.data;
     } catch (err: any) {
