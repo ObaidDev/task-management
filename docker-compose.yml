@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:16.2
+    # volumes:
+    #   - postgres_hahn_task_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - hahn_task_network
+    restart: unless-stopped
+
+  backend:
+    build: ./back-end
+    environment:
+      DB_HOST: postgres:5432
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_SCHEMA: ${DB_SCHEMA}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+
+    ports:
+      - '${HOST_PORT:-8085}:8080'
+
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    networks:
+      - hahn_task_network
+
+
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
+      args:
+        VITE_USER_API_URL: ${VITE_USER_API_URL}
+        VITE_BACKEND_API_URL: ${VITE_BACKEND_API_URL}
+        VITE_ENV: ${VITE_ENV}
+    ports:
+      - "3000:80"
+    networks:
+      - hahn_task_network
+
+volumes:
+  postgres_hahn_task_data:
+    driver: local
+
+networks:
+  hahn_task_network: {}
