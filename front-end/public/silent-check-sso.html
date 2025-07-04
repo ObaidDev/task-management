@@ -3,10 +3,18 @@
 <head>
     <title>Silent SSO Check</title>
     <meta charset="utf-8">
+    <meta name="robots" content="noindex, nofollow">
 </head>
 <body>
     <script>
-        parent.postMessage(location.href, location.origin);
+        try {
+            // Send the result back to the parent window
+            if (parent && parent.postMessage) {
+                parent.postMessage(location.href, location.origin);
+            }
+        } catch (e) {
+            console.error('Error in silent SSO check:', e);
+        }
     </script>
 </body>
 </html>

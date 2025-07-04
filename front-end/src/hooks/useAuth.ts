@@ -5,7 +5,16 @@ export const useAuth = () => {
   const { keycloak, initialized } = useKeycloak();
 
   const login = () => keycloak.login();
-  const logout = () => keycloak.logout();
+  
+  const logout = () => {
+    // Clear stored tokens on logout
+    localStorage.removeItem('kc_token');
+    localStorage.removeItem('kc_refreshToken');
+    localStorage.removeItem('kc_idToken');
+    localStorage.removeItem('kc_timeLocal');
+    keycloak.logout();
+  };
+  
   const register = () => keycloak.register();
 
   const hasRole = (role: string) => {
@@ -16,7 +25,17 @@ export const useAuth = () => {
     return roles.some(role => keycloak.hasRealmRole(role));
   };
 
-  const getToken = () => keycloak.token;
+  const getToken = async () => {
+    try {
+      // Ensure token is fresh before returning
+      await keycloak.updateToken(30);
+      return keycloak.token;
+    } catch (error) {
+      console.error('Failed to refresh token', error);
+      return null;
+    }
+  };
+  
   const getRefreshToken = () => keycloak.refreshToken;
 
   const getUserInfo = () => {
@@ -33,6 +52,20 @@ export const useAuth = () => {
     return null;
   };
 
+  const isTokenExpired = () => {
+    return keycloak.isTokenExpired();
+  };
+
+  const refreshToken = async () => {
+    try {
+      const refreshed = await keycloak.updateToken(0);
+      return refreshed;
+    } catch (error) {
+      console.error('Token refresh failed', error);
+      return false;
+    }
+  };
+
   return {
     isAuthenticated: initialized && keycloak.authenticated,
     isLoading: !initialized,
@@ -44,6 +77,8 @@ export const useAuth = () => {
     getToken,
     getRefreshToken,
     getUserInfo,
+    isTokenExpired,
+    refreshToken,
     keycloak,
   };
 };
