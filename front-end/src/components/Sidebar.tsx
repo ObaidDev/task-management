@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import logo from '@/assets/logo.png'
+
 
 const Sidebar = () => {
   const location = useLocation();
@@ -40,15 +42,14 @@ const Sidebar = () => {
   return (
     <div className="fixed top-0 left-0 w-64 h-screen bg-white shadow-lg border-r border-gray-200 flex flex-col justify-between z-50">
       
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center space-x-2">
-          <img 
-            src="/logo.svg" 
-            alt="BillFlow Logo" 
-            className="w-16 h-16"
-          />
-          <span className="text-xl font-bold text-gray-900">BillFlow</span>
-        </div>
+      <div className="p-4 border-b border-gray-200">
+          <div className="flex justify-start">
+              <img 
+                  src={logo}
+                  alt="Geometer Logo"
+                  className="h-10 w-auto"
+              />
+          </div>
       </div>
       
       <nav className="flex-1 py-6">

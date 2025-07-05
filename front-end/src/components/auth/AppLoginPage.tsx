@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CreditCard, LogIn, UserPlus } from 'lucide-react';
+import logo from '@/assets/logo.png'
 
 const AppLoginPage: React.FC = () => {
   const { login, register } = useAuth();
@@ -11,14 +12,14 @@ const AppLoginPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-8 rounded-lg">
               <img 
-                src="/logo.svg" 
-                alt="BillFlow Logo" 
-                className="w-32 h-32"
+                  src={logo}
+                  alt="Geometer Logo"
+                  className="h-10 w-auto"
               />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">Welcome to BillFlow</CardTitle>
+          <CardTitle className="text-md font-bold text-gray-900">Welcome to Tasky</CardTitle>
           <CardDescription>
             Secure login powered by AWS Identity
           </CardDescription>
